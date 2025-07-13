@@ -1697,7 +1697,7 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
 	unsigned int processed_ctrls = 0;
 	struct uvc_control *ctrl;
 	unsigned int i;
-	int ret;
+	int ret = 0;
 
 	if (entity == NULL)
 		return 0;
@@ -1725,9 +1725,6 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
 				dev->intfnum, ctrl->info.selector,
 				uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
 				ctrl->info.size);
-		else
-			ret = 0;
-
 		if (!ret)
 			processed_ctrls++;
 
@@ -1738,9 +1735,17 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
 
 		ctrl->dirty = 0;
 
-		if (ret < 0)
-			return ret;
+		if (ret < 0 && !rollback) {
+			/*
+			 * If we fail to set a control, restore the remaining
+			 * controls in this entity from their backup values.
+			 */
+			rollback = 1;
+		}
 	}
+
+	if (ret)
+		return ret;
 
 	return processed_ctrls;
 }
@@ -1751,23 +1756,27 @@ int __uvc_ctrl_commit(struct uvc_fh *handle, int rollback,
 {
 	struct uvc_video_chain *chain = handle->chain;
 	struct uvc_entity *entity;
-	int ret = 0;
+	int ret_out = 0;
+	int ret;
 
 	/* Find the control. */
 	list_for_each_entry(entity, &chain->entities, chain) {
 		ret = uvc_ctrl_commit_entity(chain->dev, entity, rollback);
 		if (ret < 0) {
-			goto done;
+			/*
+			 * Restore the backups for all entities that have not been
+			 * processed yet, keeping the cache and hardware in sync.
+			 */
+			rollback = 1;
+			ret_out = ret;
 		} else if (ret > 0 && !rollback) {
 			uvc_ctrl_send_events(handle, entity, xctrls,
 					     xctrls_count);
 		}
 	}
 
-	ret = 0;
-done:
 	mutex_unlock(&chain->ctrl_mutex);
-	return ret;
+	return ret_out;
 }
 
 int uvc_ctrl_get(struct uvc_video_chain *chain,

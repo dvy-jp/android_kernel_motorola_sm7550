@@ -20,6 +20,7 @@
 #include <linux/osq_lock.h>
 #include <linux/debug_locks.h>
 #include <linux/android_vendor.h>
+#include <linux/cleanup.h>
 
 struct device;
 

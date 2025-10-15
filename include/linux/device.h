@@ -31,6 +31,7 @@
 #include <linux/device/class.h>
 #include <linux/device/driver.h>
 #include <linux/android_kabi.h>
+#include <linux/cleanup.h>
 #include <asm/device.h>
 
 struct device;

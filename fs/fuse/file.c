@@ -375,8 +375,12 @@ void fuse_file_release(struct inode *inode, struct fuse_file *ff,
 	 * Make the release synchronous if this is a fuseblk mount,
 	 * synchronous RELEASE is allowed (and desirable) in this case
 	 * because the server can be trusted not to screw up.
+	 *
+	 * Always use the asynchronous file put because the current thread
+	 * might be the fuse server. This can happen when asynchronous I/O
+	 * drops the final file reference from a fuse server thread.
 	 */
-	fuse_file_put(inode, ff, ff->fm->fc->destroy);
+	fuse_file_put(inode, ff, false);
 }
 
 void fuse_release_common(struct file *file, bool isdir)

@@ -1643,7 +1643,7 @@ int32_t npu_host_unload_network(struct npu_client *client,
 	}
 
 	if (network->is_unloading) {
-		NPU_ERR("network is unloading\n");
+		pr_err("network is unloading\n");
 		network_put(network);
 		mutex_unlock(&host_ctx->lock);
 		return -EINVAL;
@@ -1651,6 +1651,13 @@ int32_t npu_host_unload_network(struct npu_client *client,
 
 	if (!network->is_active) {
 		pr_err("network is not active\n");
+		network_put(network);
+		mutex_unlock(&host_ctx->lock);
+		return -EINVAL;
+	}
+
+	if (network->is_executing) {
+		pr_err("network is in execution\n");
 		network_put(network);
 		mutex_unlock(&host_ctx->lock);
 		return -EINVAL;
@@ -1896,8 +1903,20 @@ int32_t npu_host_exec_network_v2(struct npu_client *client,
 	if (atomic_inc_return(&host_ctx->network_execute_cnt) == 1)
 		npu_notify_cdsprm_cxlimit_activity(npu_dev, true);
 
+	if (network->is_unloading) {
+		pr_err("network is unloading\n");
+		ret = -EINVAL;
+		goto exec_v2_done;
+	}
+
 	if (!network->is_active) {
 		pr_err("network is not active\n");
+		ret = -EINVAL;
+		goto exec_v2_done;
+	}
+
+	if (network->is_executing) {
+		pr_err("network is already in execution\n");
 		ret = -EINVAL;
 		goto exec_v2_done;
 	}
@@ -1919,6 +1938,7 @@ int32_t npu_host_exec_network_v2(struct npu_client *client,
 		goto exec_v2_done;
 	}
 
+	network->is_executing = true;
 	for (i = 0; i < num_patch_params; i++) {
 		exec_packet->patch_params[i].id = patch_buf_info[i].buf_id;
 		pr_debug("%d: patch_id: %x\n", i,
@@ -2000,6 +2020,7 @@ int32_t npu_host_exec_network_v2(struct npu_client *client,
 
 free_exec_packet:
 	kfree(exec_packet);
+	network->is_executing = false;
 exec_v2_done:
 	network_put(network);
 	mutex_unlock(&host_ctx->lock);

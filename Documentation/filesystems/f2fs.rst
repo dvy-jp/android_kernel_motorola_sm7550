@@ -354,7 +354,7 @@ lookup_mode=%s		 Control the directory lookup behavior for casefolded
 			 ================== ========================================
 			 Value		    Description
 			 ================== ========================================
-			 perf		    (Default) Enforces a hash-only lookup.
+			 perf		    Enforces a hash-only lookup.
 					    The linear search fallback is always
 					    disabled, ignoring the on-disk flag.
 			 compat		    Enables the linear search fallback for
@@ -362,7 +362,7 @@ lookup_mode=%s		 Control the directory lookup behavior for casefolded
 					    created by older kernel that used a
 					    different case-folding algorithm.
 					    This mode ignores the on-disk flag.
-			 auto		    F2FS determines the mode based on the
+			 auto		    (Default) Determines the mode from the
 					    on-disk `SB_ENC_NO_COMPAT_FALLBACK_FL`
 					    flag.
 			 ================== ========================================

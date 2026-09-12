@@ -172,7 +172,7 @@ static void ipc_log_read(struct ipc_log_context *ilctxt,
 {
 	int bytes_to_read;
 
-	bytes_to_read = MIN(LOG_PAGE_DATA_SIZE
+	bytes_to_read = IPC_LOG_MIN(LOG_PAGE_DATA_SIZE
 				- ilctxt->nd_read_page->hdr.nd_read_offset,
 			      data_size);
 
@@ -209,7 +209,7 @@ static void ipc_log_drop(struct ipc_log_context *ilctxt, void *data,
 	int bytes_to_read;
 	bool push_nd_read;
 
-	bytes_to_read = MIN(LOG_PAGE_DATA_SIZE
+	bytes_to_read = IPC_LOG_MIN(LOG_PAGE_DATA_SIZE
 				- ilctxt->read_page->hdr.read_offset,
 			      data_size);
 	if (data)
@@ -322,7 +322,7 @@ void ipc_log_write(void *ctxt, struct encode_context *ectxt)
 	while (ilctxt->write_avail <= ectxt->offset)
 		msg_drop(ilctxt);
 
-	bytes_to_write = MIN(LOG_PAGE_DATA_SIZE
+	bytes_to_write = IPC_LOG_MIN(LOG_PAGE_DATA_SIZE
 				- ilctxt->write_page->hdr.write_offset,
 				ectxt->offset);
 	memcpy((ilctxt->write_page->data +

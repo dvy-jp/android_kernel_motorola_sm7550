@@ -199,5 +199,11 @@ extern bool snd_usb_skip_validation;
 #define QUIRK_FLAG_GENERIC_IMPLICIT_FB	(1U << 17)
 #define QUIRK_FLAG_SKIP_IMPLICIT_FB	(1U << 18)
 #define QUIRK_FLAG_IFACE_SKIP_CLOSE	(1U << 19)
+/* Este arbol no traia la definicion de upstream (el parche 5.15.202 la usa en
+ * quirks.c para el AB13X y el TEAC Model 12). Se toma el primer bit libre; el
+ * consumidor de upstream tampoco existe aca, asi que queda inerte y solo
+ * mantiene el QUIRK_FLAG_IFACE_DELAY de esas entradas.
+ */
+#define QUIRK_FLAG_FORCE_IFACE_RESET	(1U << 20)
 
 #endif /* __USBAUDIO_H */

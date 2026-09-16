@@ -134,6 +134,9 @@ struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id)
 {
 	struct uvc_entity *entity;
 
+	if (id == UVC_INVALID_ENTITY_ID)
+		return NULL;
+
 	list_for_each_entry(entity, &dev->entities, list) {
 		if (entity->id == id)
 			return entity;
@@ -161,11 +164,24 @@ static struct uvc_entity *uvc_entity_by_reference(struct uvc_device *dev,
 
 static struct uvc_streaming *uvc_stream_by_id(struct uvc_device *dev, int id)
 {
-	struct uvc_streaming *stream;
+	struct uvc_streaming *stream, *last_stream;
+	unsigned int count = 0;
 
 	list_for_each_entry(stream, &dev->streams, list) {
+		count += 1;
+		last_stream = stream;
 		if (stream->header.bTerminalLink == id)
 			return stream;
+	}
+
+	/*
+	 * If the streaming entity is referenced by an invalid ID, notify the
+	 * user and use heuristics to guess the correct entity.
+	 */
+	if (count == 1 && id == UVC_INVALID_ENTITY_ID) {
+		dev_warn(&dev->intf->dev,
+			 "UVC non compliance: Invalid USB header. The streaming entity has an invalid ID, guessing the correct one.");
+		return last_stream;
 	}
 
 	return NULL;
@@ -762,13 +778,13 @@ static struct uvc_entity *uvc_alloc_new_entity(struct uvc_device *dev, u16 type,
 	/* Per UVC 1.1+ spec 3.7.2, the ID should be non-zero. */
 	if (id == 0) {
 		dev_err(&dev->udev->dev, "Found Unit with invalid ID 0.\n");
-		return ERR_PTR(-EINVAL);
+		id = UVC_INVALID_ENTITY_ID;
 	}
 
 	/* Per UVC 1.1+ spec 3.7.2, the ID is unique. */
 	if (uvc_entity_by_id(dev, id)) {
 		dev_err(&dev->udev->dev, "Found multiple Units with ID %u\n", id);
-		return ERR_PTR(-EINVAL);
+		id = UVC_INVALID_ENTITY_ID;
 	}
 
 	extra_size = roundup(extra_size, sizeof(*entity->pads));

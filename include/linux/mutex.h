@@ -249,4 +249,13 @@ extern void mutex_unlock(struct mutex *lock);
 
 extern int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock);
 
+/*
+ * Este arbol tiene la infraestructura de guard() en include/linux/cleanup.h y
+ * los guard de rwsem en rwsem.h, pero le faltaban los de mutex: el parche
+ * 5.15.210 usa guard(mutex) en sound/core/timer.c y no compilaba. Se agregan
+ * las definiciones de upstream.
+ */
+DEFINE_GUARD(mutex, struct mutex *, mutex_lock(_T), mutex_unlock(_T))
+DEFINE_LOCK_GUARD_1(mutex_intr, struct mutex, mutex_lock_interruptible(_T), mutex_unlock(_T))
+
 #endif /* __LINUX_MUTEX_H */

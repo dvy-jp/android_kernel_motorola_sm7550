@@ -501,7 +501,11 @@ static void acc_complete_send_hid_event(struct usb_ep *ep,
 		return;
 	}
 
-	hid_report_raw_event(hid->hid, HID_INPUT_REPORT, req->buf, length, 1);
+	/* Este archivo no viene en el parche oficial: hid_report_raw_event()
+	 * ahora recibe tambien el tamano del buffer (req->length es la capacidad
+	 * del buffer que se le paso a la URB). */
+	hid_report_raw_event(hid->hid, HID_INPUT_REPORT, req->buf, req->length,
+			     length, 1);
 }
 
 static int acc_hid_parse(struct hid_device *hid)

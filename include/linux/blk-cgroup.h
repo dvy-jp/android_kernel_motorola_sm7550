@@ -92,6 +92,9 @@ struct blkg_policy_data {
 	/* the blkg and policy id this per-policy data belongs to */
 	struct blkcg_gq			*blkg;
 	int				plid;
+	/* este arbol ya tenia pd_online_fn/pd_offline_fn pero no el campo que
+	 * el parche 5.15.210 usa para saber si el pd esta online. */
+	bool				online;
 };
 
 /*

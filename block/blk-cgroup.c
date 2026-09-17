@@ -192,6 +192,7 @@ static struct blkcg_gq *blkg_alloc(struct blkcg *blkcg, struct request_queue *q,
 		blkg->pd[i] = pd;
 		pd->blkg = blkg;
 		pd->plid = i;
+		pd->online = false;
 	}
 
 	return blkg;
@@ -1372,6 +1373,7 @@ retry:
 
 		pd->blkg = blkg;
 		pd->plid = pol->plid;
+		pd->online = false;
 		blkg->pd[pol->plid] = pd;
 
 		if (pol->pd_init_fn)

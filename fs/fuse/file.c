@@ -391,8 +391,14 @@ void fuse_file_release(struct inode *inode, struct fuse_file *ff,
 	 * Always use the asynchronous file put because the current thread
 	 * might be the fuse server. This can happen when asynchronous I/O
 	 * drops the final file reference from a fuse server thread.
+	 *
+	 * Exception is virtio-fs, which is not affected by the above (server is
+	 * on host, cannot close open files in guest).  Virtio-fs needs sync
+	 * release, because the num_waiting mechanism to wait for all requests
+	 * before commencing with fs shutdown doesn't work if submounts are
+	 * used.
 	 */
-	fuse_file_put(inode, ff, false);
+	fuse_file_put(inode, ff, ff->fm->fc->auto_submounts);
 }
 
 void fuse_release_common(struct file *file, bool isdir)

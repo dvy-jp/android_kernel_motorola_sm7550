@@ -150,6 +150,7 @@ struct rproc_ops {
  *			has attached to it
  * @RPROC_DETACHED:	device has been booted by another entity and waiting
  *			for the core to attach to it
+ * @RPROC_DELETED:	device has been deleted
  * @RPROC_LAST:		just keep this one at the end
  *
  * Please note that the values of these states are used as indices
@@ -165,7 +166,8 @@ enum rproc_state {
 	RPROC_CRASHED	= 3,
 	RPROC_ATTACHED	= 4,
 	RPROC_DETACHED	= 5,
-	RPROC_LAST	= 6,
+	RPROC_DELETED	= 6,
+	RPROC_LAST	= 7,
 };
 
 /**

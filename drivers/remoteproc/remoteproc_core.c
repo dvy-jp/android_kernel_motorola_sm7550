@@ -1166,23 +1166,37 @@ static int rproc_handle_resources(struct rproc *rproc,
 				  rproc_handle_resource_t handlers[RSC_LAST])
 {
 	struct device *dev = &rproc->dev;
+	struct resource_table *table = rproc->table_ptr;
 	rproc_handle_resource_t handler;
 	int ret = 0, i;
 
-	if (!rproc->table_ptr)
+	if (!table)
 		return 0;
 
-	for (i = 0; i < rproc->table_ptr->num; i++) {
-		int offset = rproc->table_ptr->offset[i];
-		struct fw_rsc_hdr *hdr = (void *)rproc->table_ptr + offset;
-		int avail = rproc->table_sz - offset - sizeof(*hdr);
-		void *rsc = (void *)hdr + sizeof(*hdr);
+	/* Validate the offset array before reading entries from firmware. */
+	if (rproc->table_sz < sizeof(*table) ||
+	    rproc->table_sz > INT_MAX ||
+	    table->num > (rproc->table_sz - sizeof(*table)) / sizeof(u32)) {
+		dev_err(dev, "rsc table has invalid size\n");
+		return -EINVAL;
+	}
 
-		/* make sure table isn't truncated */
-		if (avail < 0) {
+	for (i = 0; i < table->num; i++) {
+		u32 offset = table->offset[i];
+		struct fw_rsc_hdr *hdr;
+		int avail;
+		void *rsc;
+
+		/* A signed offset could otherwise read before the table. */
+		if (offset > rproc->table_sz ||
+		    rproc->table_sz - offset < sizeof(*hdr)) {
 			dev_err(dev, "rsc table is truncated\n");
 			return -EINVAL;
 		}
+
+		hdr = (void *)table + offset;
+		avail = rproc->table_sz - offset - sizeof(*hdr);
+		rsc = (void *)hdr + sizeof(*hdr);
 
 		dev_dbg(dev, "rsc: type %d\n", hdr->type);
 

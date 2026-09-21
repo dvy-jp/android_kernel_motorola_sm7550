@@ -2286,6 +2286,9 @@ int rtl_pci_probe(struct pci_dev *pdev,
 	return 0;
 
 fail3:
+	rtl_deinit_rfkill(hw);
+	rtl_debug_remove_one(hw);
+	ieee80211_unregister_hw(hw);
 	pci_set_drvdata(pdev, NULL);
 	rtl_deinit_core(hw);
 

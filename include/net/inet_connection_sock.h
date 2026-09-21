@@ -290,8 +290,8 @@ static inline int inet_csk_reqsk_queue_is_full(const struct sock *sk)
 	return inet_csk_reqsk_queue_len(sk) > READ_ONCE(sk->sk_max_ack_backlog);
 }
 
-	return (unsigned long)min_t(u64, timeout, max_timeout);
-}
+bool inet_csk_reqsk_queue_drop(struct sock *sk, struct request_sock *req);
+void inet_csk_reqsk_queue_drop_and_put(struct sock *sk, struct request_sock *req);
 
 void inet_csk_destroy_sock(struct sock *sk);
 void inet_csk_prepare_for_destroy_sock(struct sock *sk);

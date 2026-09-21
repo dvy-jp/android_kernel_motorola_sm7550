@@ -796,7 +796,7 @@ static int usbhs_remove(struct platform_device *pdev)
 {
 	struct usbhs_priv *priv = usbhs_pdev_to_priv(pdev);
 
-	flush_delayed_work(&priv->notify_hotplug_work);
+	dev_dbg(&pdev->dev, "usb remove\n");
 
 	/*
 	 * Explicitly free the IRQ to ensure the interrupt handler is
@@ -810,6 +810,7 @@ static int usbhs_remove(struct platform_device *pdev)
 	usbhs_fifo_remove(priv);
 	usbhs_pipe_remove(priv);
 
+	/* power off */
 	if (!usbhs_get_dparam(priv, runtime_pwctrl))
 		usbhsc_power_ctrl(priv, 0);
 
@@ -818,7 +819,6 @@ static int usbhs_remove(struct platform_device *pdev)
 
 	usbhsc_clk_put(priv);
 	pm_runtime_disable(&pdev->dev);
-}
 
 	return 0;
 }

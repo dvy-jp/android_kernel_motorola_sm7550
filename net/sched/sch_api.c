@@ -600,6 +600,7 @@ void __qdisc_calculate_pkt_len(struct sk_buff *skb,
 	else
 		pkt_len = stab->data[stab->szopts.tsize - 1] *
 				(slot / stab->szopts.tsize) +
+				stab->data[slot % stab->szopts.tsize];
 
 	pkt_len <<= stab->szopts.size_log;
 out:
@@ -610,7 +611,6 @@ out:
 	pkt_len = clamp_t(int, pkt_len, 1, QDISC_PKT_LEN_MAX);
 	qdisc_skb_cb(skb)->pkt_len = pkt_len;
 }
-
 EXPORT_SYMBOL(__qdisc_calculate_pkt_len);
 
 static enum hrtimer_restart qdisc_watchdog(struct hrtimer *timer)

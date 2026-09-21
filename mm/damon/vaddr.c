@@ -591,6 +591,7 @@ out:
 
 static const struct mm_walk_ops damon_young_ops = {
 	.pmd_entry = damon_young_pmd_entry,
+	.hugetlb_entry = damon_young_hugetlb_entry,
 };
 
 static bool damon_va_young(struct mm_struct *mm, unsigned long addr)
@@ -598,7 +599,6 @@ static bool damon_va_young(struct mm_struct *mm, unsigned long addr)
 	struct damon_young_walk_private arg = {
 		.young = false,
 	};
-
 
 	mmap_read_lock(mm);
 	walk_page_range(mm, addr, addr + 1, &damon_young_ops, &arg);
@@ -611,7 +611,8 @@ static bool damon_va_young(struct mm_struct *mm, unsigned long addr)
  *
  * mm	'mm_struct' for the given virtual address space
  * r	the region to be checked
-static void damon_va_check_access(struct damon_ctx *ctx,
+ */
+static void __damon_va_check_access(struct damon_ctx *ctx,
 			       struct mm_struct *mm, struct damon_region *r)
 {
 	bool accessed;
@@ -621,7 +622,6 @@ static void damon_va_check_access(struct damon_ctx *ctx,
 		r->nr_accesses++;
 }
 
-unsigned int damon_va_check_accesses(struct damon_ctx *ctx)
 static unsigned int damon_va_check_accesses(struct damon_ctx *ctx)
 {
 	struct damon_target *t;

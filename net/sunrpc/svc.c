@@ -355,24 +355,7 @@ svc_pool_for_cpu(struct svc_serv *serv, int cpu)
 			break;
 		}
 	}
-	/*
-	 * Puede haber pools sin hilos (userland puede armarlo asi, y con
-	 * menos hilos que pools algunos quedan vacios). Un transporte en un
-	 * pool sin hilos nunca se atenderia: caemos al siguiente pool
-	 * poblado, cambiando localidad NUMA por atencion garantizada.
-	 */
-	for (i = 0; i < serv->sv_nrpools; i++) {
-		struct svc_pool *pool = &serv->sv_pools[pidx];
-
-		if (data_race(pool->sp_nrthreads))
-			return pool;
-
-		if (++pidx >= serv->sv_nrpools)
-			pidx = 0;
-	}
-
-	/* Ningun pool tiene hilos: nada puede atender el transporte. */
-	return &serv->sv_pools[pidx];
+	return &serv->sv_pools[pidx % serv->sv_nrpools];
 }
 
 int svc_rpcb_setup(struct svc_serv *serv, struct net *net)

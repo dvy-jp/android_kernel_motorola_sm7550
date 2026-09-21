@@ -1552,6 +1552,7 @@ static struct gdsc mdss_gdsc = {
 	},
 	.pwrsts = PWRSTS_OFF_ON,
 	.flags = 0,
+	.supply = "mmcx",
 };
 
 static struct critical_clk_offset critical_clk_list[] = {
